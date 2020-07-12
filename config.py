@@ -15,6 +15,7 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "RedisHost" : "localhost",
     "RedisPort" : 6379,
     "RedisDb" : 0,
+    "RedisPassword" : "",
     #Server Settings
     "ServerName" : "RealistikOsu!",
     "ServerURL" : "https://ussr.pl/",
@@ -22,8 +23,9 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "AvatarServer" : "https://a.ussr.pl/",
     "BanchoURL" : "https://c.ussr.pl/",
     "BeatmapMirror" : "http://storage.ripple.moe/",
-    "IpLookup" : "http://ip.zxq.co/",
+    "IpLookup" : "https://ip.zxq.co/",
     "HasRelax" : True,
+    "HasAutopilot" : True,
     "AvatarDir" : "/home/RIPPLE/avatarserver/av/",
     "Webhook" : "", #Discord webhook for posting newly ranked maps
     #Recaptcha v2 for the login page
@@ -35,7 +37,12 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "SecretKey" : b64encode(urandom(64)).decode('utf-8'), #generates random encryption key
     "DevBuild": False, #for developers only to create a new buildinfo.json code
     "UserCountFetchRate" : 5, #In minutes. The interval between grabbing the player count
-    "GitHubRepo" : "https://github.com/RealistikOsu/RealistikPanel" #AGPL requirement i believe
+    "GitHubRepo" : "https://github.com/RealistikOsu/RealistikPanel", #AGPL requirement i believe
+    "CurrentIP" : "95.179.225.194", #the IP for the /current.json (ripple based switchers)
+    "TimezoneOffset" : 1, #offset for hours, can be negative
+    "DonorBadgeID" : 1002, #This badge will be awarded to new donors!
+    "ConsoleLogWebhook" : "", #if set, all console logs will be sent to that webhook
+    "AdminLogWebhook" : "" #if set, all admin logs (aka rap logs) will be sent to that webhook
 }
 
 class JsonFile:

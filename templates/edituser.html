@@ -1,5 +1,24 @@
 {% extends "base.html" %}
 
+{% block head %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js" integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/static/css/selectize.bootstrap4.css" />
+
+<script>
+    document.addEventListener('DOMContentLoaded', function(event) {
+        $('#countryselect').selectize({
+			create: true,
+			sortField: {
+				field: 'text',
+				direction: 'asc'
+			},
+			//dropdownParent: 'body'
+		});
+    });
+</script>
+{% endblock %}
+
 {% block content %}
 <h2 class="section-title">Edit {{ UserData['Username'] }}</h2>
 
@@ -20,6 +39,22 @@
         <b style="color: #4287f5;">{{ UserData["PrivName"] }}</b>
         {% else %}
         <b style="color: #eb4034;">{{ UserData["PrivName"] }}</b>
+        {% endif %}
+        {% if UserData["HasSupporter"] %}
+        <br>
+        <span style="color: #e8b923;">Their Donor rank expires <b>{{ UserData["DonorExpireStr"] }}</b>.</span>
+        {% endif %}
+        {% if UserData["IsSilenced"] %}
+        <br>
+        <span style="color: #eb4034;">They are currently silenced for the reason: <b>{{ UserData["SilenceReason"] }}</b>. They will be unsilenced {{ UserData["SilenceEndAgo"] }}.</span>
+        {% endif %}
+        {% if UserData["IsBanned"] %}
+        <br>
+        <span style="color: #eb4034;">They were banned {{ UserData["BanedAgo"] }}</span>
+        {% endif %}
+        {% if UserData["IsFrozen"] %}
+        <br>
+        <span style="color: #eb4034;">They are currently frozen. They will be autorestricted {{ UserData["FreezeDate"] }} if they do not submit a liveplay.</span>
         {% endif %}
     </div>
     <div class="card-footer">
@@ -54,11 +89,11 @@
             </div>
             <div class="form-group">
                 <label>User Page</label>
-                <input type="text" class="form-control" name="userpage" value="{{ UserData['UserpageContent'] }}" style="height: 400px;">
+                <textarea type="text" class="form-control" name="userpage" rows=15>{{ UserData['UserpageContent'] }}</textarea>
             </div>
             <div class="form-group">
                 <label>Privilege</label>
-                <select name="privilege" class="form-control">
+                <select name="privilege" class="form-control" id="privselect">
                     {% for priv in Privs %}
                     {% if priv["Priv"] == UserData["Privileges"] %}
                     <option value="{{ priv['Priv'] }}" selected>{{ priv['Name'] }} ({{ priv['Priv'] }})</option>
@@ -69,8 +104,41 @@
                 </select>
             </div>
             <div class="form-group">
+                <label>Badges</label>
+                <select name="Badge1" class="form-control" id="Badge1">
+                    {% for badge in badges %}
+                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+                    {% endfor %}
+                </select><br>
+                <select name="Badge2" class="form-control" id="Badge2">
+                    {% for badge in badges %}
+                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+                    {% endfor %}
+                </select><br>
+                <select name="Badge3" class="form-control" id="Badge3">
+                    {% for badge in badges %}
+                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+                    {% endfor %}
+                </select><br>
+                <select name="Badge4" class="form-control" id="Badge4">
+                    {% for badge in badges %}
+                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+                    {% endfor %}
+                </select><br>
+                <select name="Badge5" class="form-control" id="Badge5">
+                    {% for badge in badges %}
+                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+                    {% endfor %}
+                </select><br>
+                <select name="Badge6" class="form-control" id="Badge6">
+                    {% for badge in badges %}
+                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
                 <label>Admin Notes</label>
-                <input type="text" class="form-control" name="notes" value="{{ UserData['Notes'] }}" style="height: 200px;">
+                <textarea type="text" class="form-control" name="notes" rows=15>{{ UserData['Notes'] }}</textarea>
             </div>
             <div class="form-group" id="iptext">
                 <b>IP: </b>{{ UserData['Ip'] }}
@@ -88,14 +156,31 @@
         <p></p>
         <div class="buttons">
             <a href="/user/iplookup/{{ UserData['Ip'] }}" class="btn btn-success">IP Lookup</a>
+            <a href="/changepass/{{ UserData['Id'] }}" class="btn btn-warning">Change Password</a>
+            <a href="/donoraward/{{ UserData['Id'] }}" class="btn btn-warning">Award Donor</a>
+            {% if UserData["HasSupporter"] %}
+            <a href="/donorremove/{{ UserData['Id'] }}" class="btn btn-warning">Remove Donor</a>
+            {% endif %}
         </div>
         <div class="buttons">
-            <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger">Wipe</a>
             <a href="/actions/restrict/{{ UserData['Id'] }}" class="btn btn-danger">Restrict/Unrestrict</a>
-            <a href="/actions/ban/{{ UserData['Id'] }}" class="btn btn-danger">Ban/Unban</a>
-            <a href="/actions/hwid/{{ UserData['Id'] }}" class="btn btn-danger">Clear HWID</a>
-            <a href="/action/confirm/delete/{{ UserData['Id'] }}" class="btn btn-danger">Delete Account</a>
-            <a href="/actions/kick/{{ UserData['Id'] }}" class="btn btn-warning">Kick User</a>
+            <a href="/actions/ban/{{ UserData['Id'] }}" class="btn btn-danger" id="ban">Ban/Unban</a>
+            <a href="/actions/freeze/{{ UserData['Id'] }}" class="btn btn-danger">Freeze/Unfreeze</a>
+            <a href="/actions/hwid/{{ UserData['Id'] }}" class="btn btn-danger" id="hwid">Clear HWID</a>
+            <a href="/action/confirm/delete/{{ UserData['Id'] }}" class="btn btn-danger", id="delete">Delete Account</a>
+            <a href="/actions/kick/{{ UserData['Id'] }}" class="btn btn-warning" id="kick">Kick User</a>
+            {% if config["HasRelax"] or config["HasAutopilot"] %}
+            <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Full Wipe</a>
+            <a href="/actions/wipeva/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Vanilla</a>
+            {% else %}
+            <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe</a>
+            {% endif %}
+            {% if config["HasRelax"] %}
+            <a href="/actions/wiperx/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Relax</a>
+            {% endif %}
+            {% if config["HasAutopilot"] %}
+            <a href="/actions/wipeap/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Autopilot</a>
+            {% endif %}
         </div>
     </div>
     <div class="card-footer">
@@ -110,12 +195,47 @@
     fetch(url)
     .then(res => res.json())
     .then((out) => {
-    console.log("Got json hopefully ", out);
-    // doing things
     document.getElementById("iptext").innerHTML = "<b>IP:</b> {{ UserData['Ip'] }} ("+out["country"]+")"
     })
     .catch(err => {
         document.getElementById("iptext").innerHTML = "<b>IP:</b> {{ UserData['Ip'] }} (Unknown)"
     }); 
+
+    //setting default  badges
+    document.getElementById("Badge1").value = "{{ UserBadges[0] }}";
+    document.getElementById("Badge2").value = "{{ UserBadges[1] }}";
+    document.getElementById("Badge3").value = "{{ UserBadges[2] }}";
+    document.getElementById("Badge4").value = "{{ UserBadges[3] }}";
+    document.getElementById("Badge5").value = "{{ UserBadges[4] }}";
+    document.getElementById("Badge6").value = "{{ UserBadges[5] }}";
+
+    var UserPriv = "{{ UserData['Privileges'] }}";
+    var PrivSelect = document.getElementById("privselect");
+
+    if (PrivSelect.value != UserPriv) {
+        //so users with unknown privilege groups dont get accidentally banned
+        //create Unknown Option
+        var NewOption = document.createElement("option");
+        NewOption.appendChild(document.createTextNode("Unknown (" + UserPriv + ")"));
+        NewOption.value = UserPriv
+        //adds to priv option
+        PrivSelect.appendChild(NewOption)
+        //select it
+        PrivSelect.value = NewOption.value
+    }
+
+    var AdminPerms = "{{ session['Privilege'] }}";
+    //disabling buttons the person has no perm to use
+    if (!(AdminPerms & 128)) {
+        document.getElementById("wipe").remove();
+        document.getElementById("hwid").remove();
+        document.getElementById("delete").remove();
+    }
+    if (!(AdminPerms & 32)) {
+        document.getElementById("ban").remove()
+    }
+    if (!(AdminPerms & 524288)) {
+        document.getElementById("kick").remove()
+    }
 </script>
 {% endblock %}
